@@ -69,12 +69,7 @@ def reorder_fields(table_in, out_table, field_order, add_missing=False):
     arcpy.Merge_management(table_in, out_table, new_mapping)
     return out_table
 
-def delete_fields(existing_table, keep_fields_list):
-    field_name_required_dict = get_field_names_and_required(existing_table)
-    remove_list = create_remove_list(field_name_required_dict, keep_fields_list)
-    arcpy.DeleteField_management(existing_table, remove_list)
-
-def rename_fields(table_in, out_table, new_name_by_old_name):
+def rename_fields2(table_in, out_table, new_name_by_old_name):
     """ Renames specified fields in input feature class/table
     :table:                 input table (fc, table, layer, etc)
     :out_table:             output table (fc, table, layer, etc)
@@ -103,16 +98,23 @@ def rename_fields(table_in, out_table, new_name_by_old_name):
     arcpy.Merge_management(table_in, out_table, field_mappings)
     return out_table
 
-def prepare_fields(table_in, new_name_by_old_name):
-    number1 = get_unique_number()
-    number2 = get_unique_number()
-    reorder = reorder_fields(table_in, r"in_memory\reorder_" + str(number1), new_name_by_old_name.keys(), add_missing=False)
-    rename = rename_fields(reorder, r"in_memory\rename_" + str(number2), new_name_by_old_name)
-    return rename
+def delete_fields(existing_table, keep_fields_list):
+    field_name_required_dict = get_field_names_and_required(existing_table)
+    remove_list = create_remove_list(field_name_required_dict, keep_fields_list)
+    arcpy.DeleteField_management(existing_table, remove_list)
 
-def prepare_renamed_dict(mains_field_list, appended_string):
+def rename_fields(existing_table, keep_fields_list, appended_string):
+    keep_fields_dict = prepare_renamed_dict(keep_fields_list, appended_string)
+    for key, value in keep_fields_dict.items():
+        arcpy.AlterField_management(existing_table, key, value)
+
+def prepare_fields(table_in, keep_fields_list, appended_string):
+    delete_fields(table_in, keep_fields_list)
+    rename_fields(table_in, keep_fields_list, appended_string)
+
+def prepare_renamed_dict(field_list, appended_string):
     renamed_dict = {}
-    for item in mains_field_list:
+    for item in field_list:
         renamed_dict[item] = appended_string + item
     return renamed_dict
 
@@ -139,6 +141,6 @@ def create_remove_list(existing_names_and_required, field_list):
     remove_field_list = []
     for key, value in existing_names_and_required.items():
         # second param tests for required fields (OID, Shape, etc), don't want to include these as we cannot modify them
-        if key not in field_list and value != True:
+        if key not in field_list and key not in ('Shape', 'OBJECTID') and value != True:
             remove_field_list.append(key)
     return remove_field_list

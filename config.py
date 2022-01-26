@@ -1,10 +1,14 @@
 import os
 import arcpy
 import utility
+from datetime import datetime
+
+
+print "MASTER LATERAL PREP - Starting Config: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
 log_file = r"\\besfile1\ASM_AssetMgmt\Projects\Lateral_Failure_Cohorts\master_lateral"
-log_obj = utility.Logger(log_file)
-log_obj.info("MASTER LATERAL PREP - Starting Config".format())
+
+projection_file = r"\\besfile1\ASM_AssetMgmt\Projects\Lateral_Failure_Cohorts\prj\WKID_2913.prj"
 
 master_output_gdb = r"\\besfile1\ASM_AssetMgmt\Projects\Lateral_Failure_Cohorts\master_lateral.gdb"
 
@@ -23,14 +27,14 @@ WOs = arcpy.MakeQueryLayer_management(BESGEORPT_TEST, "WOs",
                                       " SCHEDDTTM, PRI, PROB, COMPFLAG, STRUCTURAL_RATING, STRUCTURALSCORE, SHAPE_STArea__, SHAPE_STLength__, STATUS, Shape "
                                       "from BESGEORPT.GIS.V_WOS_COMBINED_COPY20211006 WHERE ACTCODE in ('LNRLAT','R/RLAT')", "OID")
 
-mains = arcpy.MakeFeatureLayer_management(collection_lines, r"in_memory\pipes", "LAYER_GROUP not in ('LATERALS', 'INLETS') AND SERVSTAT not in ('ABAN', 'TBAB' ) AND SYMBOL_GROUP not like 'ABANDONED%'")
+mains = arcpy.MakeFeatureLayer_management(collection_lines, r"in_memory\pipes", "LAYER_GROUP not in ('LATERALS', 'INLETS') AND SERVSTAT not in ('ABAN', 'TBAB' ) AND SYMBOL_GROUP not like 'ABANDONED%' AND LAYER_GROUP = 'SEWER PIPES'")
 laterals = arcpy.MakeFeatureLayer_management(collection_lines, r"in_memory\laterals", "LAYER_GROUP = 'LATERALS' AND SERVSTAT not in ('ABAN', 'TBAB' ) AND SYMBOL_GROUP not like 'ABANDONED%'")
 roots = arcpy.MakeFeatureLayer_management(tv_obs_lines, r"in_memory\roots", "OBDESC = 'ROOTS'")
 
+print "MASTER LATERAL PREP - Reading features into memory: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 WOs_copy = arcpy.CopyFeatures_management(WOs, r"in_memory\WOs_copy")
 mains_copy = arcpy.CopyFeatures_management(mains, r"in_memory\mains_copy")
 laterals_copy = arcpy.CopyFeatures_management(laterals, r"in_memory\laterals_copy")
-master_laterals = arcpy.CopyFeatures_management(laterals, r"in_memory\master_laterals")
 taxlots_copy = arcpy.CopyFeatures_management(taxlots, r"in_memory\taxlots_copy")
 roots_copy = arcpy.CopyFeatures_management(roots, r"in_memory\roots_copy")
 
@@ -61,6 +65,7 @@ print utility.get_field_names(roots_copy)
 print arcpy.GetCount_management(roots_copy)
 
 # creates "empty" laterals with only ID - to append all other fields onto
-prepared_master_laterals = utility.delete_fields(master_laterals, ["Lateral_GLOBALID"])
+master_laterals = arcpy.CopyFeatures_management(laterals_copy, r"in_memory\master_laterals")
+utility.delete_fields(master_laterals, ["Lateral_GLOBALID"])
 
-log_obj.info("Config Complete".format())
+print "Config Complete: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")

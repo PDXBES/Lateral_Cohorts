@@ -31,6 +31,7 @@ WOs_copy = arcpy.CopyFeatures_management(WOs, r"in_memory\WOs_copy")
 mains_copy = arcpy.CopyFeatures_management(mains, r"in_memory\mains_copy")
 laterals_copy = arcpy.CopyFeatures_management(laterals, r"in_memory\laterals_copy")
 master_laterals = arcpy.CopyFeatures_management(laterals, r"in_memory\master_laterals")
+taxlots_copy = arcpy.CopyFeatures_management(taxlots, r"in_memory\taxlots_copy")
 roots_copy = arcpy.CopyFeatures_management(roots, r"in_memory\roots_copy")
 
 mains_field_list = ['UNITID', 'COMPKEY', 'GLOBALID', 'SERVSTAT', 'FRM_DEPTH', 'TO_DEPTH', 'PIPESIZE', 'MATERIAL', 'JobNo', 'Install_Date', 'LAYER_GROUP', 'SYMBOL_GROUP', 'DETAIL_SYMBOL']
@@ -39,25 +40,25 @@ WOs_field_list = ['DCA_ID', 'WO', 'COMPKEY', 'PROPERTYID', 'STATUS', 'ACTCODE', 
 taxlot_field_list = ['PROPERTYID', 'YEARBUILT','LANDUSE']
 TV_obs_field_list = ['COMPKEY', 'OBDEGREE', 'OBRATING']
 
-prepared_mains = utility.prepare_fields(mains, mains_field_list, "Main_")
-print utility.get_field_names(prepared_mains)
-print arcpy.GetCount_management(prepared_mains)
+utility.prepare_fields(mains_copy, mains_field_list, "Main_")
+print utility.get_field_names(mains_copy)
+print arcpy.GetCount_management(mains_copy)
 
-prepared_laterals = utility.prepare_fields(laterals, laterals_field_list, "Lateral_")
-print utility.get_field_names(prepared_laterals)
-print arcpy.GetCount_management(prepared_laterals)
+utility.prepare_fields(laterals_copy, laterals_field_list, "Lateral_")
+print utility.get_field_names(laterals_copy)
+print arcpy.GetCount_management(laterals_copy)
 
-prepared_WOs = utility.prepare_fields(WOs, WOs_field_list, "WO_")
-print utility.get_field_names(prepared_WOs)
-print arcpy.GetCount_management(prepared_WOs)
+utility.prepare_fields(WOs_copy, WOs_field_list, "WO_")
+print utility.get_field_names(WOs_copy)
+print arcpy.GetCount_management(WOs_copy)
 
-prepared_taxlots = utility.prepare_fields(taxlots, taxlot_field_list, "TL_")
-print utility.get_field_names(prepared_taxlots)
-print arcpy.GetCount_management(prepared_taxlots)
+utility.prepare_fields(taxlots_copy, taxlot_field_list, "TL_")
+print utility.get_field_names(taxlots_copy)
+print arcpy.GetCount_management(taxlots_copy)
 
-prepared_tv_obs = utility.prepare_fields(tv_obs_lines, TV_obs_field_list, "TVObs_")
-print utility.get_field_names(prepared_tv_obs)
-print arcpy.GetCount_management(prepared_tv_obs)
+utility.prepare_fields(roots_copy, TV_obs_field_list, "Roots_")
+print utility.get_field_names(roots_copy)
+print arcpy.GetCount_management(roots_copy)
 
 # creates "empty" laterals with only ID - to append all other fields onto
 prepared_master_laterals = utility.delete_fields(master_laterals, ["Lateral_GLOBALID"])

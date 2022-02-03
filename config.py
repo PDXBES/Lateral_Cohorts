@@ -20,7 +20,9 @@ BESGEORPT_TEST = os.path.join(connections, "BESDBTEST1.BESGEORPT.OSA.sde")
 collection_lines = EGH_PUBLIC + r"\EGH_Public.ARCMAP_ADMIN.collection_lines_bes_pdx"
 taxlots = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.taxlots_pdx"
 tv_obs_lines = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.collection_tvobs_line_bes_pdx"
+pdx_boundary = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.portland_pdx"
 
+print "MASTER LATERAL PREP -    Subsetting inputs: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 # move WOs source to PROD - revise WO views to combine into one or get an alternate created for this - include missing fields that are in Hansen but not in mapped - verify with Joe/Grant that query is what we want
 WOs = arcpy.MakeQueryLayer_management(BESGEORPT_TEST, "WOs",
                                       "SELECT OID, DCA_ID, OWNER1, SITEADDR, PROPERTYID, TLID, COMPKEY, MODBY, DISTRICT, WO, ACTCODE, UNITID, UNITID2, INITDTTM, STARTDTTM,"
@@ -30,12 +32,17 @@ WOs = arcpy.MakeQueryLayer_management(BESGEORPT_TEST, "WOs",
 mains = arcpy.MakeFeatureLayer_management(collection_lines, r"in_memory\pipes", "LAYER_GROUP not in ('LATERALS', 'INLETS') AND SERVSTAT not in ('ABAN', 'TBAB' ) AND SYMBOL_GROUP not like 'ABANDONED%' AND LAYER_GROUP = 'SEWER PIPES'")
 laterals = arcpy.MakeFeatureLayer_management(collection_lines, r"in_memory\laterals", "LAYER_GROUP = 'LATERALS' AND SERVSTAT not in ('ABAN', 'TBAB' ) AND SYMBOL_GROUP not like 'ABANDONED%'")
 roots = arcpy.MakeFeatureLayer_management(tv_obs_lines, r"in_memory\roots", "OBDESC = 'ROOTS'")
+taxlots_layer = arcpy.MakeFeatureLayer_management(taxlots, r"in_memory\taxlots_layer")
 
-print "MASTER LATERAL PREP - Reading features into memory: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+#subset to lots within city boundary
+arcpy.SelectLayerByLocation_management(WOs, "HAVE_THEIR_CENTER_IN", pdx_boundary)
+arcpy.SelectLayerByLocation_management(taxlots_layer, "HAVE_THEIR_CENTER_IN", pdx_boundary)
+
+print "MASTER LATERAL PREP -    Reading features into memory: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 WOs_copy = arcpy.CopyFeatures_management(WOs, r"in_memory\WOs_copy")
 mains_copy = arcpy.CopyFeatures_management(mains, r"in_memory\mains_copy")
 laterals_copy = arcpy.CopyFeatures_management(laterals, r"in_memory\laterals_copy")
-taxlots_copy = arcpy.CopyFeatures_management(taxlots, r"in_memory\taxlots_copy")
+taxlots_copy = arcpy.CopyFeatures_management(taxlots_layer, r"in_memory\taxlots_copy")
 roots_copy = arcpy.CopyFeatures_management(roots, r"in_memory\roots_copy")
 
 mains_field_list = ['UNITID', 'COMPKEY', 'GLOBALID', 'SERVSTAT', 'FRM_DEPTH', 'TO_DEPTH', 'PIPESIZE', 'MATERIAL', 'JobNo', 'Install_Date', 'LAYER_GROUP', 'SYMBOL_GROUP', 'DETAIL_SYMBOL']

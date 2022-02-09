@@ -44,4 +44,5 @@ print utility.get_field_names(config.master_laterals)
 
 log_obj.info("ADDING WORK ORDER FIELDS TO MASTER LATERALS".format())
 
+
 log_obj.info("MASTER LATERAL PREP COMPLETE".format())

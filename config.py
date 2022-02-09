@@ -21,13 +21,14 @@ collection_lines = EGH_PUBLIC + r"\EGH_Public.ARCMAP_ADMIN.collection_lines_bes_
 taxlots = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.taxlots_pdx"
 tv_obs_lines = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.collection_tvobs_line_bes_pdx"
 pdx_boundary = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.portland_pdx"
+WOs = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.COLLECTION_TAXLOTS_BES_ALL_WOS"
 
 print "MASTER LATERAL PREP -    Subsetting inputs: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 # move WOs source to PROD - revise WO views to combine into one or get an alternate created for this - include missing fields that are in Hansen but not in mapped - verify with Joe/Grant that query is what we want
-WOs = arcpy.MakeQueryLayer_management(BESGEORPT_TEST, "WOs",
-                                      "SELECT OID, DCA_ID, OWNER1, SITEADDR, PROPERTYID, TLID, COMPKEY, MODBY, DISTRICT, WO, ACTCODE, UNITID, UNITID2, INITDTTM, STARTDTTM,"
-                                      " SCHEDDTTM, PRI, PROB, COMPFLAG, STRUCTURAL_RATING, STRUCTURALSCORE, SHAPE_STArea__, SHAPE_STLength__, STATUS, Shape "
-                                      "from BESGEORPT.GIS.V_WOS_COMBINED_COPY20211006 WHERE ACTCODE in ('LNRLAT','R/RLAT')", "OID")
+#WOs = arcpy.MakeQueryLayer_management(BESGEORPT_TEST, "WOs",
+#                                      "SELECT OID, DCA_ID, OWNER1, SITEADDR, PROPERTYID, TLID, COMPKEY, MODBY, DISTRICT, WO, ACTCODE, UNITID, UNITID2, INITDTTM, STARTDTTM,"
+#                                      " SCHEDDTTM, PRI, PROB, COMPFLAG, STRUCTURAL_RATING, STRUCTURALSCORE, SHAPE_STArea__, SHAPE_STLength__, STATUS, Shape "
+#                                      "from BESGEORPT.GIS.V_WOS_COMBINED_COPY20211006 WHERE ACTCODE in ('LNRLAT','R/RLAT')", "OID")
 
 mains = arcpy.MakeFeatureLayer_management(collection_lines, r"in_memory\pipes", "LAYER_GROUP not in ('LATERALS', 'INLETS') AND SERVSTAT not in ('ABAN', 'TBAB' ) AND SYMBOL_GROUP not like 'ABANDONED%' AND LAYER_GROUP = 'SEWER PIPES'")
 laterals = arcpy.MakeFeatureLayer_management(collection_lines, r"in_memory\laterals", "LAYER_GROUP = 'LATERALS' AND SERVSTAT not in ('ABAN', 'TBAB' ) AND SYMBOL_GROUP not like 'ABANDONED%'")
@@ -48,7 +49,7 @@ roots_copy = arcpy.CopyFeatures_management(roots, r"in_memory\roots_copy")
 mains_field_list = ['UNITID', 'COMPKEY', 'GLOBALID', 'SERVSTAT', 'FRM_DEPTH', 'TO_DEPTH', 'PIPESIZE', 'MATERIAL', 'JobNo', 'Install_Date', 'LAYER_GROUP', 'SYMBOL_GROUP', 'DETAIL_SYMBOL']
 laterals_field_list = ['UNITID', 'COMPKEY', 'GLOBALID', 'OWNRSHIP', 'SERVSTAT', 'SRVY_LEN', 'PIPESIZE', 'MATERIAL', 'JobNo', 'DATA_SRC', 'Install_Date', 'LAYER_GROUP', 'SYMBOL_GROUP', 'DETAIL_SYMBOL', 'Address', 'Lateral_Depth']
 WOs_field_list = ['DCA_ID', 'WO', 'COMPKEY', 'PROPERTYID', 'STATUS', 'ACTCODE', 'PROB', 'INITDTTM', 'STARTDTTM', 'SCHEDDTTM']
-taxlot_field_list = ['PROPERTYID', 'YEARBUILT','LANDUSE']
+taxlot_field_list = ['PROPERTYID', 'YEARBUILT','LANDUSE', 'SITEADDR']
 TV_obs_field_list = ['COMPKEY', 'OBDEGREE', 'OBRATING']
 
 utility.prepare_fields(mains_copy, mains_field_list, "Main_")
@@ -73,6 +74,6 @@ print arcpy.GetCount_management(roots_copy)
 
 # creates "empty" laterals with only ID - to append all other fields onto
 master_laterals = arcpy.CopyFeatures_management(laterals_copy, r"in_memory\master_laterals")
-utility.delete_fields(master_laterals, ["Lateral_GLOBALID"])
+utility.delete_fields(master_laterals, ["Lateral_GLOBALID", "Lateral_COMPKEY"])
 
 print "Config Complete: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")

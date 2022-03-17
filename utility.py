@@ -4,7 +4,6 @@ import sys
 import arcpy
 
 
-
 # https://stackoverflow.com/questions/6386698/how-to-write-to-a-file-using-the-logging-python-module
 def Logger(file_name):
     formatter = logging.Formatter(fmt='%(asctime)s %(module)s,line: %(lineno)d %(levelname)8s | %(message)s',
@@ -32,7 +31,7 @@ def delete_fields(existing_table, keep_fields_list):
 def rename_fields(existing_table, keep_fields_list, appended_string):
     keep_fields_dict = prepare_renamed_dict(keep_fields_list, appended_string)
     for key, value in keep_fields_dict.items():
-        arcpy.AlterField_management(existing_table, key, value)
+        arcpy.AlterField_management(existing_table, key, value, value)
 
 def prepare_fields(table_in, keep_fields_list, appended_string):
     delete_fields(table_in, keep_fields_list)

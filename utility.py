@@ -64,3 +64,34 @@ def create_remove_list(existing_names_and_required, field_list):
         if key not in field_list and key not in ('Shape', 'OBJECTID') and value != True:
             remove_field_list.append(key)
     return remove_field_list
+
+def get_field_values_as_dict(input, key_field, value_fields_list):
+    value_dict = {}
+    fields_list = [key_field]
+    for field in value_fields_list:
+        fields_list.append(field)
+    with arcpy.da.SearchCursor(input, fields_list) as cursor:
+        for row in cursor:
+            value_dict[row[0]] = row[1:]
+    return value_dict
+
+def assign_field_values_from_dict(input_dict, target, target_key_field, target_fields):
+    cursor_fields_list = [target_key_field]
+    for field in target_fields:
+        cursor_fields_list.append(field)
+    counter_max = len(cursor_fields_list) - 1
+    with arcpy.da.UpdateCursor(target, cursor_fields_list) as cursor:
+        for row in cursor:
+            counter = 1
+            values_counter = counter - 1
+            while counter <= counter_max:
+                for key, values in input_dict.items():
+                    if row[0] == key and row[counter] is None and values[values_counter] is not None:
+                        row[counter] = values[values_counter]
+                counter = counter + 1
+                values_counter = counter - 1
+            cursor.updateRow(row)
+
+def get_and_assign_field_values(source, source_key_field, source_fields, target, target_key_field, target_fields):
+    value_dict = get_field_values_as_dict(source, source_key_field, source_fields)
+    assign_field_values_from_dict(value_dict, target, target_key_field, target_fields)

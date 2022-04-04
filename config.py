@@ -23,9 +23,8 @@ collection_lines = EGH_PUBLIC + r"\EGH_Public.ARCMAP_ADMIN.collection_lines_bes_
 taxlots = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.taxlots_pdx"
 tv_obs_lines = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.collection_tvobs_line_bes_pdx"
 pdx_boundary = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.portland_pdx"
-WOs_all = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.COLLECTION_TAXLOTS_BES_ALL_WOS" # uncertain how this is used yet
-#WOs_all = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.BES_All_Work_Orders" # replaces COLLECTION_TAXLOTS_BES_ALL_WOS? verify
-#WOs = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.BES_Most_recent_Lateral_Work_Orders" # will replace query layer
+WOs_all = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.COLLECTION_TAXLOTS_BES_ALL_WOS"
+#WOs = EGH_PUBLIC + r"\EGH_PUBLIC.ARCMAP_ADMIN.COLLECTION_TAXLOTS_BES_MR_WOS" # will replace query layer
 
 print "MASTER LATERAL PREP -    Subsetting inputs: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
@@ -43,6 +42,7 @@ arcpy.SelectLayerByLocation_management(taxlots_layer, "HAVE_THEIR_CENTER_IN", pd
 
 print "MASTER LATERAL PREP -    Reading features into memory: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 WOs_copy = arcpy.CopyFeatures_management(WOs, r"in_memory\WOs_copy") # can add DCA_ID here if still needed - hopefully can use OBJECTID
+#WOs_copy = arcpy.CopyFeatures_management(WOs, os.path.join(working_gdb, "WOs_copy"))
 mains_copy = arcpy.CopyFeatures_management(mains, r"in_memory\mains_copy")
 laterals_copy = arcpy.CopyFeatures_management(laterals, r"in_memory\laterals_copy")
 taxlots_copy = arcpy.CopyFeatures_management(taxlots_layer, r"in_memory\taxlots_copy")

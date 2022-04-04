@@ -12,7 +12,8 @@ log_obj.info("MASTER LATERAL PREP - starting Main".format())
 log_obj.info("ADDING MAINLINE FIELDS TO MASTER LATERALS".format())
 
 lateral_vertices = arcpy.FeatureVerticesToPoints_management(config.master_laterals, "in_memory/lateral_vertices", "BOTH_ENDS") #both ends because laterals can be drawn backwards
-vertices_mains_sj = arcpy.SpatialJoin_analysis(lateral_vertices, config.mains_copy, "in_memory/vertices_mains_sj", "JOIN_ONE_TO_ONE", "KEEP_COMMON", "#", "CLOSEST", 1)
+lateral_to_main_tolerance_ft = 10
+vertices_mains_sj = arcpy.SpatialJoin_analysis(lateral_vertices, config.mains_copy, "in_memory/vertices_mains_sj", "JOIN_ONE_TO_ONE", "KEEP_COMMON", "#", "CLOSEST", lateral_to_main_tolerance_ft)
 
 lateral_join_field = "Lateral_GLOBALID" #check - how much confidence in GLOBALID?
 main_fields = utility.prepare_renamed_dict(config.mains_field_list, "Main_").values()
@@ -53,7 +54,15 @@ log_obj.info("   Joining taxlot fields to master laterals".format())
 arcpy.JoinField_management(config.master_laterals, "OBJECTID", endpoint_to_lateral_near_table, "NEAR_FID", taxlot_join_field_list)
 print utility.get_field_names(config.master_laterals)
 
-#log_obj.info("ADDING WORK ORDER FIELDS TO MASTER LATERALS".format())
+log_obj.info("ADDING WORK ORDER FIELDS TO MASTER LATERALS".format())
+WO_join_field_list = utility.prepare_renamed_dict(config.WOs_field_list, "WO_").values()
+log_obj.info("   Joining WO fields to master_laterals using COMPKEY".format())
+arcpy.JoinField_management(config.master_laterals, "Lateral_COMPKEY", config.WOs_copy, "WO_COMPKEY", WO_join_field_list)
+print utility.get_field_names(config.master_laterals)
+log_obj.info("   Calculating WO fields in master_laterals using PROPERTYID".format())
+utility.get_and_assign_field_values(config.WOs_copy, "WO_PROPERTYID", WO_join_field_list, config.master_laterals,
+                                        "TL_PROPERTYID", WO_join_field_list)
+
 
 #log_obj.info("ADDING ROOTS FIELDS TO MASTER LATERALS".format())
 

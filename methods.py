@@ -60,11 +60,15 @@ log_obj.info("   Joining WO fields to master_laterals using COMPKEY".format())
 arcpy.JoinField_management(config.master_laterals, "Lateral_COMPKEY", config.WOs_copy, "WO_COMPKEY", WO_join_field_list)
 print utility.get_field_names(config.master_laterals)
 log_obj.info("   Calculating WO fields in master_laterals using PROPERTYID".format())
-utility.get_and_assign_field_values(config.WOs_copy, "WO_PROPERTYID", WO_join_field_list, config.master_laterals,
-                                        "TL_PROPERTYID", WO_join_field_list)
-
+#utility.get_and_assign_field_values(config.WOs_copy, "WO_PROPERTYID", WO_join_field_list, config.master_laterals,
+#                                        "TL_PROPERTYID", WO_join_field_list)
+for field in WO_join_field_list:
+    log_obj.info("   --- for {}".format(field))
+    utility.get_and_assign_field_value(config.WOs_copy, "WO_PROPERTYID", field, config.master_laterals, "TL_PROPERTYID", field)
 
 #log_obj.info("ADDING ROOTS FIELDS TO MASTER LATERALS".format())
+
+#log_obj.info("ADDING LATERL ASSESSMENT FIELDS TO MASTER LATERALS".format())
 
 log_obj.info("Saving master laterals to disk".format())
 arcpy.CopyFeatures_management(config.master_laterals, os.path.join(config.master_output_gdb, "master_laterals"))

@@ -32,7 +32,7 @@ print "MASTER LATERAL PREP -    Subsetting inputs: " + datetime.now().strftime("
 WOs = arcpy.MakeQueryLayer_management(BESGEORPT_TEST, "WOs", "SELECT * from BESGEORPT.GIS.v_WOs_max_INITDTTM", "OBJECTID")
 
 mains = arcpy.MakeFeatureLayer_management(collection_lines, r"in_memory\pipes", "LAYER_GROUP not in ('LATERALS', 'INLETS') AND SERVSTAT not in ('ABAN', 'TBAB' ) AND SYMBOL_GROUP not like 'ABANDONED%' AND LAYER_GROUP = 'SEWER PIPES'")
-laterals = arcpy.MakeFeatureLayer_management(collection_lines, r"in_memory\laterals", "LAYER_GROUP = 'LATERALS' AND SERVSTAT not in ('ABAN', 'TBAB' ) AND SYMBOL_GROUP not like 'ABANDONED%'")
+laterals = arcpy.MakeFeatureLayer_management(collection_lines, r"in_memory\laterals", "LAYER_GROUP = 'LATERALS' AND SERVSTAT not in ('ABAN', 'TBAB' ) AND SYMBOL_GROUP not like 'ABANDONED%' AND SYMBOL_GROUP = 'SEWER LATERALS'")
 roots = arcpy.MakeFeatureLayer_management(tv_obs_lines, r"in_memory\roots", "OBDESC = 'ROOTS'")
 taxlots_layer = arcpy.MakeFeatureLayer_management(taxlots, r"in_memory\taxlots_layer")
 
@@ -41,8 +41,7 @@ arcpy.SelectLayerByLocation_management(WOs, "HAVE_THEIR_CENTER_IN", pdx_boundary
 arcpy.SelectLayerByLocation_management(taxlots_layer, "HAVE_THEIR_CENTER_IN", pdx_boundary)
 
 print "MASTER LATERAL PREP -    Reading features into memory: " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-WOs_copy = arcpy.CopyFeatures_management(WOs, r"in_memory\WOs_copy") # can add DCA_ID here if still needed - hopefully can use OBJECTID
-#WOs_copy = arcpy.CopyFeatures_management(WOs, os.path.join(working_gdb, "WOs_copy"))
+WOs_copy = arcpy.CopyFeatures_management(WOs, r"in_memory\WOs_copy")
 mains_copy = arcpy.CopyFeatures_management(mains, r"in_memory\mains_copy")
 laterals_copy = arcpy.CopyFeatures_management(laterals, r"in_memory\laterals_copy")
 taxlots_copy = arcpy.CopyFeatures_management(taxlots_layer, r"in_memory\taxlots_copy")

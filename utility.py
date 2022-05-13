@@ -65,6 +65,13 @@ def create_remove_list(existing_names_and_required, field_list):
             remove_field_list.append(key)
     return remove_field_list
 
+def get_field_value_as_dict(input, key_field, value_field):
+    value_dict = {}
+    with arcpy.da.SearchCursor(input, [key_field, value_field]) as cursor:
+        for row in cursor:
+            value_dict[row[0]] = row[1]
+    return value_dict
+
 def get_field_values_as_dict(input, key_field, value_fields_list):
     value_dict = {}
     fields_list = [key_field]
@@ -74,6 +81,14 @@ def get_field_values_as_dict(input, key_field, value_fields_list):
         for row in cursor:
             value_dict[row[0]] = row[1:]
     return value_dict
+
+def assign_field_value_from_dict(input_dict, target, target_key_field, target_field):
+    with arcpy.da.UpdateCursor(target, [target_key_field, target_field]) as cursor:
+        for row in cursor:
+            for key, value in input_dict.items():
+                if row[0] == key and row[1] is None:
+                    row[1] = value
+            cursor.updateRow(row)
 
 def assign_field_values_from_dict(input_dict, target, target_key_field, target_fields):
     cursor_fields_list = [target_key_field]
@@ -91,6 +106,10 @@ def assign_field_values_from_dict(input_dict, target, target_key_field, target_f
                 counter = counter + 1
                 values_counter = counter - 1
             cursor.updateRow(row)
+
+def get_and_assign_field_value(source, source_key_field, source_field, target, target_key_field, target_field):
+    value_dict = get_field_value_as_dict(source, source_key_field, source_field)
+    assign_field_value_from_dict(value_dict, target, target_key_field, target_field)
 
 def get_and_assign_field_values(source, source_key_field, source_fields, target, target_key_field, target_fields):
     value_dict = get_field_values_as_dict(source, source_key_field, source_fields)

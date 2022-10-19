@@ -54,6 +54,12 @@ log_obj.info("   Joining taxlot fields to master laterals".format())
 arcpy.JoinField_management(config.master_laterals, "OBJECTID", endpoint_to_lateral_near_table, "NEAR_FID", taxlot_join_field_list)
 print utility.get_field_names(config.master_laterals)
 
+log_obj.info("   applying block object mean yearbuilt for records where no yearbuilt from taxlot".format())
+laterals_no_yearbuilt = arcpy.MakeFeatureLayer_management(config.master_laterals, r"in_memory\laterals_no_yearbuilt", "TL_YEARBUILT is Null")
+no_yearbuilt_to_points = arcpy.FeatureToPoint_management(laterals_no_yearbuilt, r"in_memory\no_yearbuilt_to_points", "CENTROID")
+no_yearbuilt_BO_sect = arcpy.Intersect_analysis([no_yearbuilt_to_points, config.block_objects], r"in_memory\no_yearbuilt_BO_sect")
+utility.get_and_assign_field_value(no_yearbuilt_BO_sect, "Lateral_COMPKEY", "MEAN_YEARBUILT", config.master_laterals, "Lateral_COMPKEY", "TL_YEARBUILT")
+
 log_obj.info("ADDING WORK ORDER FIELDS TO MASTER LATERALS".format())
 WO_join_field_list = utility.prepare_renamed_dict(config.WOs_field_list, "WO_").values()
 log_obj.info("   Joining WO fields to master_laterals using COMPKEY".format())

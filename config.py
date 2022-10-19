@@ -69,6 +69,9 @@ print "Work Orders..."
 print utility.get_field_names(WOs_copy)
 print arcpy.GetCount_management(WOs_copy)
 
+# recast YEARBUILT field from text to short integer
+utility.cast_text_to_short(taxlots_copy, "YEARBUILT")
+
 utility.prepare_fields(taxlots_copy, taxlot_field_list, "TL_")
 print "Taxlots..."
 print utility.get_field_names(taxlots_copy)

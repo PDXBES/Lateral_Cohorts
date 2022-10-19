@@ -33,6 +33,18 @@ def rename_fields(existing_table, keep_fields_list, appended_string):
     for key, value in keep_fields_dict.items():
         arcpy.AlterField_management(existing_table, key, value, value)
 
+def list_field_names(input_fc):
+    field_names = []
+    fields = arcpy.ListFields(input_fc)
+    for field in fields:
+        field_names.append(field.name)
+    return field_names
+
+def add_field_if_needed(input_fc, field_to_add, field_type, precision='', scale='', length=''):
+    field_names = list_field_names(input_fc)
+    if field_to_add not in field_names:
+        arcpy.AddField_management(input_fc, field_to_add, field_type, precision, scale, length)
+
 def prepare_fields(table_in, keep_fields_list, appended_string):
     delete_fields(table_in, keep_fields_list)
     rename_fields(table_in, keep_fields_list, appended_string)
@@ -83,11 +95,10 @@ def get_field_values_as_dict(input, key_field, value_fields_list):
     return value_dict
 
 def assign_field_value_from_dict(input_dict, target, target_key_field, target_field):
-    with arcpy.da.UpdateCursor(target, [target_key_field, target_field]) as cursor:
+    with arcpy.da.UpdateCursor(target, (target_key_field, target_field)) as cursor:
         for row in cursor:
-            for key, value in input_dict.items():
-                if row[0] == key and row[1] is None:
-                    row[1] = value
+            if row[0] in input_dict.keys() and row[1] is None:
+                row[1] = input_dict[row[0]]
             cursor.updateRow(row)
 
 def assign_field_values_from_dict(input_dict, target, target_key_field, target_fields):
@@ -114,3 +125,15 @@ def get_and_assign_field_value(source, source_key_field, source_field, target, t
 def get_and_assign_field_values(source, source_key_field, source_fields, target, target_key_field, target_fields):
     value_dict = get_field_values_as_dict(source, source_key_field, source_fields)
     assign_field_values_from_dict(value_dict, target, target_key_field, target_fields)
+
+# will ignore records that have any letters
+def cast_text_to_short(input, text_field_to_cast):
+    int_field = text_field_to_cast + "_int"
+    add_field_if_needed(input, int_field, "SHORT")
+    with arcpy.da.UpdateCursor(input, [text_field_to_cast, int_field]) as cursor:
+        for row in cursor:
+            if row[0] is not None and row[0].isdigit():
+                row[1] = int(row[0])
+                cursor.updateRow(row)
+    arcpy.DeleteField_management(input, [text_field_to_cast])
+    arcpy.AlterField_management(input, int_field, text_field_to_cast)
